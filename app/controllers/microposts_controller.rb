@@ -1,5 +1,6 @@
 class MicropostsController < ApplicationController
   before_action :require_user_logged_in
+  before_action :correct_user, only: [:destroy]
 
   def create
     @micropost = current_user.microposts.build(micropost_params)
@@ -14,11 +15,25 @@ class MicropostsController < ApplicationController
   end
 
   def destroy
+    @micropost.destroy
+    flash[:success] = 'メッセージを削除しました。'
+    if params[:controller] == 'microposts'
+      redirect_to root_url
+    else
+      redirect_back(fallback_location: root_path)
+    end
   end
 
   private
 
   def micropost_params
     params.require(:micropost).permit(:content)
+  end
+
+  def correct_user
+    @micropost = current_user.microposts.find_by(id: params[:id])
+    unless @micropost
+      redirect_to root_url
+    end
   end
 end
